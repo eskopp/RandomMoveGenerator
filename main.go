@@ -19,7 +19,7 @@ func generateRandomMoves(game *chess.Game, maxMoves int) ([]string, bool) {
 		// Zufälligen Zug wählen
 		move := legalMoves[rand.Intn(len(legalMoves))]
 
-		// Züge als algebraische Notation aufzeichnen
+		// Züge als Notation aufzeichnen
 		moveNotation := move.String()
 
 		// Bestimme die Farbe des Spielers
@@ -42,7 +42,7 @@ func generateRandomMoves(game *chess.Game, maxMoves int) ([]string, bool) {
 }
 
 func playGame(inputFEN string, maxAttempts int) {
-	game, err := chess.NewGame(chess.FEN(inputFEN))
+	game, err := chess.NewGameFromFEN(inputFEN)
 	if err != nil {
 		fmt.Println("Fehler beim Erstellen des Spiels:", err)
 		return
@@ -62,7 +62,7 @@ func playGame(inputFEN string, maxAttempts int) {
 
 		// Überprüfen, ob diese Stellung schon gesehen wurde
 		if _, exists := seenPositions[positionFEN]; exists {
-			game, _ = chess.NewGame(chess.FEN(inputFEN)) // Zurücksetzen des Spiels
+			game, _ = chess.NewGameFromFEN(inputFEN) // Zurücksetzen des Spiels
 			continue
 		}
 
@@ -92,7 +92,7 @@ func playGame(inputFEN string, maxAttempts int) {
 			break
 		}
 
-		game, _ = chess.NewGame(chess.FEN(inputFEN)) // Zurücksetzen des Spiels
+		game, _ = chess.NewGameFromFEN(inputFEN) // Zurücksetzen des Spiels
 	}
 }
 
