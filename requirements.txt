@@ -1,4 +1,0 @@
-python-chess
-lichesspy
-chess~=1.11.0
-black
