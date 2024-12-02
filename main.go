@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/notnil/chess"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 )
@@ -40,7 +41,9 @@ func generateRandomMoveSequence(game *chess.Game) ([]string, error) {
 		}
 
 		// Nach dem dritten Zug von Weiß prüfen, ob Schachmatt erreicht ist
-		if i == 2 && game.Outcome() == chess.WhiteWon {
+		if /*i == 2 && */ game.Outcome() == chess.WhiteWon {
+			fmt.Printf("Hallo Welt")
+			os.Exit(0)
 			return moves, nil
 		}
 	}
@@ -80,7 +83,9 @@ func playGame(inputFEN string, maxAttempts int) {
 		// Variante ist neu, speichern und zählen
 		seenVariants[variantKey] = struct{}{}
 		uniqueVariants++
-
+		if uniqueVariants%10000 == 0 {
+			fmt.Printf("Lebenszeichen: %d Varianten geprüft...\n", uniqueVariants)
+		}
 		// Ausgabe der Variante
 		// fmt.Printf("Variante %d: %v\n", uniqueVariants, moves)
 		if err == nil {
