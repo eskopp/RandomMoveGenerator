@@ -82,7 +82,7 @@ func playGame(inputFEN string, maxAttempts int) {
 		uniqueVariants++
 
 		// Ausgabe der Variante
-		fmt.Printf("Variante %d: %v\n", uniqueVariants, moves)
+		// fmt.Printf("Variante %d: %v\n", uniqueVariants, moves)
 		if err == nil {
 			// Erfolgreiche Variante gefunden
 			elapsedTime := time.Since(startTime)
@@ -92,7 +92,6 @@ func playGame(inputFEN string, maxAttempts int) {
 			fmt.Printf("\x1b[32mAnzahl der geprüften Varianten: %d\x1b[0m\n", uniqueVariants)
 			break
 		}
-
 		// Wenn die maximale Anzahl an Versuchen überschritten wurde
 		if uniqueVariants >= maxAttempts {
 			fmt.Println("Maximale Anzahl an Varianten erreicht, keine Lösung gefunden.")
@@ -109,7 +108,7 @@ func main() {
 
 	// Beispiel-FEN
 	inputFEN := "8/4N3/3k4/8/2R1n3/8/N5K1/8 b - - 0 1"
-	maxAttempts := 50000000 // Maximale Anzahl an Varianten
+	maxAttempts := 9999999999 // Maximale Anzahl an Varianten
 
 	// Spiel starten
 	playGame(inputFEN, maxAttempts)
