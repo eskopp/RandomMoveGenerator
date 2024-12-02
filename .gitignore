@@ -40,3 +40,4 @@ Thumbs.db
 
 # Other IDEs and tools
 .vscode/
+*idea*
