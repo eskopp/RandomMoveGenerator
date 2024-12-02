@@ -7,13 +7,13 @@ fn generate_random_moves(game: &mut Game, max_moves: usize) -> (Vec<String>, boo
     let mut black_moves = Vec::new();
     let mut white_moves = Vec::new();
 
-    for _ in 0..max_moves {
-        let board = game.current_position(); // Aktuelle Position erhalten
-        let legal_moves: Vec<ChessMove> = MoveGen::new_legal(&board).collect();
+    // Wir können die Anzahl der geprüften Züge begrenzen (max_moves), um die Laufzeit zu steuern.
+    let board = game.current_position();
+    let legal_moves: Vec<ChessMove> = MoveGen::new_legal(&board).collect();
 
+    for _ in 0..max_moves {
         if let Some(random_move) = legal_moves.choose(&mut rand::thread_rng()) {
-            // Verwende `game.san()` für die Notation des Zugs
-            let move_notation = game.san(*random_move); // Richtige Methode hier
+            let move_notation = random_move.to_string();  // Züge als Notation
             if board.side_to_move() == chess::Color::Black {
                 black_moves.push(move_notation);
             } else {
@@ -21,7 +21,7 @@ fn generate_random_moves(game: &mut Game, max_moves: usize) -> (Vec<String>, boo
             }
             game.make_move(*random_move);
             if board.status() == chess::BoardStatus::Checkmate {
-                return (black_moves, true);
+                return (black_moves, true);  // Schachmatt erreicht
             }
         }
     }
@@ -29,9 +29,9 @@ fn generate_random_moves(game: &mut Game, max_moves: usize) -> (Vec<String>, boo
     (black_moves, game.current_position().status() == chess::BoardStatus::Checkmate)
 }
 
-fn play_game(input_fen: &str) {
+fn play_game(input_fen: &str, max_attempts: usize) {
     let mut seen_positions = HashSet::new();
-    let mut game = Game::from_fen(input_fen).unwrap();
+    let mut game = Game::new_from_fen(input_fen).unwrap();
     let mut attempt_count = 0;
 
     let start_time = Instant::now();
@@ -42,7 +42,7 @@ fn play_game(input_fen: &str) {
         let position_fen = game.current_position().to_string();
 
         if seen_positions.contains(&position_fen) {
-            game = Game::from_fen(input_fen).unwrap();
+            game = Game::new_from_fen(input_fen).unwrap();
             continue;
         }
 
@@ -62,11 +62,17 @@ fn play_game(input_fen: &str) {
         }
 
         attempt_count += 1;
-        game = Game::from_fen(input_fen).unwrap();
+        if attempt_count > max_attempts {
+            println!("Maximale Anzahl an Varianten erreicht, keine Lösung gefunden.");
+            break;  // Max. Versuche erreicht
+        }
+
+        game = Game::new_from_fen(input_fen).unwrap();
     }
 }
 
 fn main() {
     let input_fen = "8/4N3/3k4/8/2R1n3/8/N5K1/8 b - - 0 1"; // Beispiel FEN
-    play_game(input_fen);
+    let max_attempts = 500000;  // Setze ein realistisches Limit für die Anzahl der Varianten
+    play_game(input_fen, max_attempts);
 }
