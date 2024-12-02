@@ -163,3 +163,24 @@ cython_debug/
 
 *idea*
 *./idea/*
+
+
+# Rust build output
+/target/
+
+# Backup files
+*.bak
+*.swp
+
+# IDE files
+.idea/
+.vscode/
+
+# Cargo files
+**/*.rs.bk
+
+# Rust package registry
+/Cargo.lock
+
+# Debug files
+/debug/
