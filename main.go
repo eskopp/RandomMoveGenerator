@@ -4,53 +4,52 @@ import (
 	"fmt"
 	"github.com/notnil/chess"
 	"math/rand"
+	"strings"
 	"time"
 )
 
-// Funktion, um zufällige Züge zu generieren und eine Folge von 4 Zügen (3 von Schwarz und 1 von Weiß) zu erstellen
+// Funktion, um zufällige Züge zu generieren und eine Folge von 6 Zügen (3 Schwarz, 3 Weiß) zu prüfen
 func generateRandomMoveSequence(game *chess.Game) ([]string, error) {
 	var moves []string
 
 	// Schwarz zieht 3 Mal
 	for i := 0; i < 3; i++ {
-		// Generiere alle legalen Züge
 		legalMoves := game.ValidMoves()
-
 		if len(legalMoves) == 0 {
-			return nil, fmt.Errorf("keine legalen Züge verfügbar")
+			return nil, fmt.Errorf("keine legalen Züge verfügbar für Schwarz")
 		}
 
-		// Zufälligen Zug wählen
 		move := legalMoves[rand.Intn(len(legalMoves))]
 		moves = append(moves, move.String()) // Zug als Notation speichern
-
-		// Führe den Zug aus
-		err := game.Move(move)
-		if err != nil {
-			return nil, fmt.Errorf("fehler beim Ausführen eines Zugs: %v", err)
+		if err := game.Move(move); err != nil {
+			return nil, fmt.Errorf("fehler beim Ausführen eines Zugs für Schwarz: %v", err)
 		}
 	}
 
-	// Weiß zieht 1 Mal
-	legalMoves := game.ValidMoves()
-	if len(legalMoves) == 0 {
-		return nil, fmt.Errorf("keine legalen Züge verfügbar")
-	}
-	move := legalMoves[rand.Intn(len(legalMoves))]
-	moves = append(moves, move.String()) // Zug als Notation speichern
+	// Weiß zieht 3 Mal
+	for i := 0; i < 3; i++ {
+		legalMoves := game.ValidMoves()
+		if len(legalMoves) == 0 {
+			return nil, fmt.Errorf("keine legalen Züge verfügbar für Weiß")
+		}
 
-	// Führe den Zug aus
-	err := game.Move(move)
-	if err != nil {
-		return nil, fmt.Errorf("fehler beim Ausführen eines Zugs: %v", err)
+		move := legalMoves[rand.Intn(len(legalMoves))]
+		moves = append(moves, move.String()) // Zug als Notation speichern
+		if err := game.Move(move); err != nil {
+			return nil, fmt.Errorf("fehler beim Ausführen eines Zugs für Weiß: %v", err)
+		}
+
+		// Nach dem dritten Zug von Weiß prüfen, ob Schachmatt erreicht ist
+		if i == 2 && game.Outcome() == chess.WhiteWon {
+			return moves, nil
+		}
 	}
 
-	return moves, nil
+	return moves, fmt.Errorf("kein Schachmatt nach 6 Zügen gefunden")
 }
 
 // Hauptfunktion für das Spiel
 func playGame(inputFEN string, maxAttempts int) {
-	// Erstelle das Spiel aus der FEN-Zeichenkette
 	position, err := chess.FEN(inputFEN)
 	if err != nil {
 		fmt.Println("Fehler beim Erstellen der Position aus der FEN:", err)
@@ -58,50 +57,44 @@ func playGame(inputFEN string, maxAttempts int) {
 	}
 	game := chess.NewGame(position)
 
-	seenPositions := make(map[string]struct{})
+	seenVariants := make(map[string]struct{}) // Speichert bereits geprüfte Varianten
 	attemptCount := 0
+	uniqueVariants := 0
 	startTime := time.Now()
 
 	// Schleife für die maximale Anzahl an Versuchen
 	for {
-		// Generiere Züge
 		moves, err := generateRandomMoveSequence(game)
-		if err != nil {
-			fmt.Println("Fehler beim Generieren der Züge:", err)
-			break
-		}
+		attemptCount++
 
-		// Speichere die aktuelle Stellung in FEN
-		positionFEN := game.Position().String()
+		// Konvertiere die Zugfolge in einen eindeutigen Schlüssel
+		variantKey := strings.Join(moves, " ")
 
-		// Überprüfen, ob diese Stellung schon gesehen wurde
-		if _, exists := seenPositions[positionFEN]; exists {
-			game = chess.NewGame(position) // Setze das Spiel zurück
+		// Prüfen, ob diese Variante bereits geprüft wurde
+		if _, exists := seenVariants[variantKey]; exists {
+			// Variante wurde bereits geprüft, überspringen
+			game = chess.NewGame(position)
 			continue
 		}
 
-		// Füge die aktuelle Stellung hinzu
-		seenPositions[positionFEN] = struct{}{}
+		// Variante ist neu, speichern und zählen
+		seenVariants[variantKey] = struct{}{}
+		uniqueVariants++
 
-		// Gib alle 1000 geprüften Varianten aus
-		if attemptCount%1000 == 0 {
-			fmt.Printf("Variante %d überprüft...\n", attemptCount)
-		}
-
-		// Überprüfe, ob Schachmatt erreicht wurde
-		if game.Outcome() == chess.WhiteWon || game.Outcome() == chess.BlackWon {
+		// Ausgabe der Variante
+		fmt.Printf("Variante %d: %v\n", uniqueVariants, moves)
+		if err == nil {
+			// Erfolgreiche Variante gefunden
 			elapsedTime := time.Since(startTime)
-			fmt.Printf("\x1b[32mZüge: %s\x1b[0m\n", moves)
-			fmt.Println("\x1b[32mSchachmatt erreicht!\x1b[0m")
+			fmt.Printf("\x1b[32mSchachmatt erreicht!\x1b[0m\n")
+			fmt.Printf("\x1b[32mZüge: %v\x1b[0m\n", moves)
 			fmt.Printf("\x1b[32mLaufzeit: %.2f Sekunden\x1b[0m\n", elapsedTime.Seconds())
-			fmt.Printf("\x1b[32mAnzahl der geprüften Varianten: %d\x1b[0m\n", attemptCount)
+			fmt.Printf("\x1b[32mAnzahl der geprüften Varianten: %d\x1b[0m\n", uniqueVariants)
 			break
 		}
 
-		attemptCount++
-
 		// Wenn die maximale Anzahl an Versuchen überschritten wurde
-		if attemptCount > maxAttempts {
+		if uniqueVariants >= maxAttempts {
 			fmt.Println("Maximale Anzahl an Varianten erreicht, keine Lösung gefunden.")
 			break
 		}
@@ -116,7 +109,7 @@ func main() {
 
 	// Beispiel-FEN
 	inputFEN := "8/4N3/3k4/8/2R1n3/8/N5K1/8 b - - 0 1"
-	maxAttempts := 500000 // Maximale Anzahl an Varianten
+	maxAttempts := 50000000 // Maximale Anzahl an Varianten
 
 	// Spiel starten
 	playGame(inputFEN, maxAttempts)
