@@ -15,7 +15,7 @@ def generate_random_moves(fen: str, num_moves: int = 6):
     return moves
 
 move_sequence = generate_random_moves(input_fen, num_moves=6)
-Specification of the color selection via the FEN
+
 board = chess.Board(input_fen)
 for i, move in enumerate(move_sequence, 1):
     print(f"Move {i}: {board.san(move)}")
