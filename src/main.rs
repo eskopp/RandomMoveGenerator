@@ -8,7 +8,9 @@ fn generate_random_moves(game: &mut Game, max_moves: usize) -> (Vec<String>, boo
     let mut white_moves = Vec::new();
 
     for _ in 0..max_moves {
-        let legal_moves: Vec<_> = MoveGen::new_legal(&game.board()).collect(); // Korrektur hier
+        // Verwende eine unveränderliche Referenz auf das Schachbrett
+        let legal_moves: Vec<_> = MoveGen::new_legal(&game.board()).collect();
+
         if let Some(random_move) = legal_moves.choose(&mut rand::thread_rng()) {
             let move_notation = game.board().san(*random_move);
             if game.board().turn().is_black() {
